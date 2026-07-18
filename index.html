@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Álbum Mundial 2026 — Figuritas faltantes</title>
+<style>
+  :root {
+    --bg: #082b2e;
+    --card: #0f4448;
+    --border: #1c6066;
+    --border-soft: rgba(28,96,102,0.6);
+    --text: #eafff9;
+    --muted: #9fd8d2;
+    --muted2: #7fb8b2;
+    --mint: #5eead4;
+    --gold: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(10,52,56,0.95);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 16px; }
+  .title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  h1 { font-size: 22px; font-weight: 800; color: var(--mint); margin: 0; letter-spacing: -0.02em; }
+  .subtitle { font-size: 13px; color: var(--muted); margin: 2px 0 0; }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .btn-reset {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; padding: 8px 12px; border-radius: 10px;
+    background: var(--card); border: 1px solid var(--border); color: #bfe9e3;
+  }
+  .btn-reset:hover { background: #155054; }
+  .totals { margin-top: 16px; display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; }
+  .stat .num { font-size: 24px; font-weight: 900; line-height: 1; }
+  .stat .num.gold { color: var(--gold); }
+  .stat .num.mint { color: var(--mint); }
+  .stat .num.white { color: #fff; }
+  .stat .num small { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-top: 4px; }
+  .progress-outer { margin-top: 12px; height: 8px; border-radius: 999px; background: var(--card); border: 1px solid var(--border); overflow: hidden; }
+  .progress-inner { height: 100%; background: linear-gradient(to right, var(--mint), var(--gold)); transition: width .4s; }
+  .progress-pct { text-align: right; font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .controls { margin-top: 12px; display: flex; gap: 8px; }
+  .search-box { position: relative; flex: 1; }
+  .search-box input {
+    width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 9px 12px 9px 30px; font-size: 14px; color: var(--text);
+  }
+  .search-box input::placeholder { color: #5f9a95; }
+  .search-box input:focus { outline: none; box-shadow: 0 0 0 2px var(--mint); }
+  .search-box svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #5f9a95; }
+  .btn-toggle {
+    font-size: 12px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card); color: #bfe9e3; white-space: nowrap;
+  }
+  .btn-toggle.active { background: var(--mint); color: var(--bg); border-color: var(--mint); font-weight: 700; }
+
+  .list { max-width: 720px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 60px; }
+  .country { border-radius: 12px; border: 1px solid var(--border); background: var(--card); }
+  .country.done { background: rgba(15,68,72,0.6); border-color: var(--border-soft); }
+  .country-head {
+    width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: transparent; border: none; text-align: left; color: inherit;
+  }
+  .flag { font-size: 24px; line-height: 1; }
+  .cinfo { flex: 1; min-width: 0; }
+  .cname { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cname.done { color: var(--muted2); }
+  .ccode { font-size: 11px; color: var(--muted2); }
+  .badge-done {
+    display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700;
+    color: var(--mint); padding: 4px 8px; border-radius: 999px; background: rgba(94,234,212,0.1);
+    border: 1px solid rgba(94,234,212,0.4); white-space: nowrap;
+  }
+  .badge-count {
+    font-size: 14px; font-weight: 700; color: var(--gold); padding: 4px 8px; border-radius: 999px;
+    background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3);
+  }
+  .chev { color: #5f9a95; transition: transform .2s; }
+  .chev.open { transform: rotate(180deg); }
+  .chips { padding: 0 16px 16px; display: none; }
+  .chips.open { display: block; }
+  .chips-inner { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 4px; border-top: 1px solid var(--border); }
+  .chip {
+    margin-top: 8px; min-width: 42px; padding: 6px 8px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  }
+  .chip:hover { border-color: var(--mint); }
+  .chip.got { background: rgba(94,234,212,0.15); border-color: rgba(94,234,212,0.5); color: var(--mint); text-decoration: line-through; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="wrap">
+    <div class="title-row">
+      <div>
+        <h1>Álbum Mundial 2026</h1>
+        <p class="subtitle">Seguimiento de figuritas faltantes</p>
+      </div>
+      <button class="btn-reset" onclick="resetAll()">↺ Reiniciar</button>
+    </div>
+
+    <div class="totals">
+      <div class="stat"><div class="num gold" id="stat-remaining">0</div><div class="label">Te faltan</div></div>
+      <div class="stat"><div class="num mint" id="stat-got">0</div><div class="label">Conseguidas</div></div>
+      <div class="stat"><div class="num white" id="stat-complete">0<small>/0</small></div><div class="label">Países completos</div></div>
+    </div>
+
+    <div class="progress-outer"><div class="progress-inner" id="progress-bar" style="width:0%"></div></div>
+    <div class="progress-pct" id="progress-pct">0% completo</div>
+
+    <div class="controls">
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="search" type="text" placeholder="Buscar país..." oninput="render()" />
+      </div>
+      <button class="btn-toggle" id="hideDoneBtn" onclick="toggleHideDone()">Ocultar completos</button>
+    </div>
+  </div>
+</div>
+
+<div class="list" id="list"></div>
+
+<script>
+const DATA = [
+  { code: "FWC", name: "Especiales (FWC)", flag: "⚽", missing: ["00",1,2,3,5,8,9,10,11,13,14,15,18,19] },
+  { code: "MEX", name: "México", flag: "🇲🇽", missing: [2,4,8,13,16,17,18] },
+  { code: "RSA", name: "Sudáfrica", flag: "🇿🇦", missing: [11,13,16] },
+  { code: "KOR", name: "Corea del Sur", flag: "🇰🇷", missing: [1,5,12,13,16,18] },
+  { code: "CZE", name: "Chequia", flag: "🇨🇿", missing: [1,2,8,12,13,17,19] },
+  { code: "CAN", name: "Canadá", flag: "🇨🇦", missing: [1,2,3,9,11,12,13,18,19] },
+  { code: "BIH", name: "Bosnia", flag: "🇧🇦", missing: [2,5,6,7,13,14,17,20] },
+  { code: "QAT", name: "Catar", flag: "🇶🇦", missing: [2,4,8,12,13,17] },
+  { code: "SUI", name: "Suiza", flag: "🇨🇭", missing: [2,6,15,17,19,20] },
+  { code: "BRA", name: "Brasil", flag: "🇧🇷", missing: [1,2,3,6,9,10,13,16,17] },
+  { code: "MAR", name: "Marruecos", flag: "🇲🇦", missing: [5,9,13,15,17,18,19] },
+  { code: "HAI", name: "Haití", flag: "🇭🇹", missing: [1,2,12,13,17,19] },
+  { code: "SCO", name: "Escocia", flag: "🏴", missing: [5,6,8,10,11,12,15,16] },
+  { code: "USA", name: "Estados Unidos", flag: "🇺🇸", missing: [1,2,3,4,5,6,8,10,11,12,13,19,20] },
+  { code: "PAR", name: "Paraguay", flag: "🇵🇾", missing: [1,5,11,14,15,17,18,19] },
+  { code: "AUS", name: "Australia", flag: "🇦🇺", missing: [6,8,10,15,16,19] },
+  { code: "TUR", name: "Turquía", flag: "🇹🇷", missing: [8,9,17,20] },
+  { code: "GER", name: "Alemania", flag: "🇩🇪", missing: [1,2,4,6,16,17,18,19] },
+  { code: "CUW", name: "Curazao", flag: "🇨🇼", missing: [1,2,5,6,7,10,13,14,15,17,18,20] },
+  { code: "CIV", name: "Costa de Marfil", flag: "🇨🇮", missing: [2,5,6,8,12,13,18,19] },
+  { code: "ECU", name: "Ecuador", flag: "🇪🇨", missing: [4,11,14,16,17,18,20] },
+  { code: "NED", name: "Países Bajos", flag: "🇳🇱", missing: [1,2,3,6,9,10,13,18,20] },
+  { code: "JPN", name: "Japón", flag: "🇯🇵", missing: [5,9,10,13,14,20] },
+  { code: "SWE", name: "Suecia", flag: "🇸🇪", missing: [1,3,7,11,13,15] },
+  { code: "TUN", name: "Túnez", flag: "🇹🇳", missing: [6,8,12,13,17] },
+  { code: "BEL", name: "Bélgica", flag: "🇧🇪", missing: [1,16,18] },
+  { code: "EGY", name: "Egipto", flag: "🇪🇬", missing: [3,4,5,8,10,11,12,13,16,18,19] },
+  { code: "IRN", name: "Irán", flag: "🇮🇷", missing: [3,4,7,9,10,12,13,14,17,20] },
+  { code: "NZL", name: "Nueva Zelanda", flag: "🇳🇿", missing: [1,5,8,10,13,15,16,17,19,20] },
+  { code: "ESP", name: "España", flag: "🇪🇸", missing: [1,2,3,6,9,10,13,14,16] },
+  { code: "CPV", name: "Cabo Verde", flag: "🇨🇻", missing: [2,3,4,5,9,11,14,16,18,19] },
+  { code: "KSA", name: "Arabia Saudita", flag: "🇸🇦", missing: [3,5,8,14,16,19,20] },
+  { code: "URU", name: "Uruguay", flag: "🇺🇾", missing: [1,2,5,8,9,10,14,15,18] },
+  { code: "FRA", name: "Francia", flag: "🇫🇷", missing: [1,3,9,10,11,15,16,19,20] },
+  { code: "SEN", name: "Senegal", flag: "🇸🇳", missing: [3,5,8,12,16,18,20] },
+  { code: "IRQ", name: "Irak", flag: "🇮🇶", missing: [1,4,9,14,15,16,17,20] },
+  { code: "NOR", name: "Noruega", flag: "🇳🇴", missing: [4,7,15,18,20] },
+  { code: "ARG", name: "Argentina", flag: "🇦🇷", missing: [1,3,6,8,9,10,12,13,14,15,17,18,20] },
+  { code: "ALG", name: "Argelia", flag: "🇩🇿", missing: [1,2,4,7,8,11,12] },
+  { code: "AUT", name: "Austria", flag: "🇦🇹", missing: [4,11] },
+  { code: "JOR", name: "Jordania", flag: "🇯🇴", missing: [1,5,6,8,9,10,13,14,18,19] },
+  { code: "POR", name: "Portugal", flag: "🇵🇹", missing: [10,11,12,17] },
+  { code: "COD", name: "Rep. del Congo", flag: "🇨🇩", missing: [8,9,19] },
+  { code: "UZB", name: "Uzbekistán", flag: "🇺🇿", missing: [6,9,13,15] },
+  { code: "COL", name: "Colombia", flag: "🇨🇴", missing: [1,2,3,6,13,16,17,18,19] },
+  { code: "ENG", name: "Inglaterra", flag: "🏴", missing: [1,2,11,14,16,17,18,20] },
+  { code: "CRO", name: "Croacia", flag: "🇭🇷", missing: [1,4,6,10,15,17,18,19] },
+  { code: "GHA", name: "Ghana", flag: "🇬🇭", missing: [1,2,5,6,13,14,15,16,17] },
+  { code: "PAN", name: "Panamá", flag: "🇵🇦", missing: [6,8,9,10,11,14,17,20] },
+  { code: "CC", name: "Especiales (CC)", flag: "⚽", missing: [1,3,4,6,8,9,10,13,14] },
+];
+
+const STORAGE_KEY = "wc2026-collected-v1";
+let collected = {};
+let hideDone = false;
+let openCode = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    collected = raw ? JSON.parse(raw) : {};
+  } catch(e) { collected = {}; }
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collected)); } catch(e) {}
+}
+function toggle(code, num) {
+  const set = new Set(collected[code] || []);
+  if (set.has(num)) set.delete(num); else set.add(num);
+  collected[code] = Array.from(set);
+  saveState();
+  render();
+}
+function resetAll() {
+  if (!confirm("¿Reiniciar todo el progreso? Esto borra las figuritas marcadas como conseguidas.")) return;
+  collected = {};
+  saveState();
+  render();
+}
+function toggleHideDone() {
+  hideDone = !hideDone;
+  document.getElementById('hideDoneBtn').classList.toggle('active', hideDone);
+  render();
+}
+
+function render() {
+  const query = document.getElementById('search').value.trim().toLowerCase();
+  const rows = DATA.map(c => {
+    const got = new Set((collected[c.code] || []).map(String));
+    const remaining = c.missing.filter(n => !got.has(String(n)));
+    return { ...c, got, remaining, remainingCount: remaining.length, totalMissing: c.missing.length };
+  });
+
+  const totalRemaining = rows.reduce((s,c)=>s+c.remainingCount,0);
+  const totalMissingOriginal = rows.reduce((s,c)=>s+c.totalMissing,0);
+  const totalGot = totalMissingOriginal - totalRemaining;
+  const pct = totalMissingOriginal === 0 ? 100 : Math.round((totalGot/totalMissingOriginal)*100);
+  const countriesComplete = rows.filter(c=>c.remainingCount===0).length;
+
+  document.getElementById('stat-remaining').textContent = totalRemaining;
+  document.getElementById('stat-got').textContent = totalGot;
+  document.getElementById('stat-complete').innerHTML = countriesComplete + '<small>/' + rows.length + '</small>';
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '% completo';
+
+  const filtered = rows.filter(c => {
+    if (hideDone && c.remainingCount===0) return false;
+    if (!query) return true;
+    return c.name.toLowerCase().includes(query) || c.code.toLowerCase().includes(query);
+  });
+
+  const listEl = document.getElementById('list');
+  if (filtered.length===0) {
+    listEl.innerHTML = '<div class="empty">No hay países que coincidan.</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(c => {
+    const done = c.remainingCount===0;
+    const isOpen = openCode === c.code;
+    const badge = done
+      ? '<span class="badge-done">✓ Completo</span>'
+      : '<span class="badge-count">'+c.remainingCount+'</span>';
+    const chips = c.missing.map(num => {
+      const isGot = c.got.has(String(num));
+      const label = (c.code==="FWC"||c.code==="CC") ? (c.code+num) : num;
+      return '<button class="chip'+(isGot?' got':'')+'" onclick="toggle(\''+c.code+'\',\''+num+'\')">'+label+'</button>';
+    }).join('');
+
+    return '<div class="country'+(done?' done':'')+'">'
+      + '<button class="country-head" onclick="openCode = openCode===\''+c.code+'\' ? null : \''+c.code+'\'; render();">'
+      + '<span class="flag">'+c.flag+'</span>'
+      + '<div class="cinfo"><div class="cname'+(done?' done':'')+'">'+c.name+'</div><div class="ccode">'+c.code+'</div></div>'
+      + badge
+      + '<span class="chev'+(isOpen?' open':'')+'">▾</span>'
+      + '</button>'
+      + '<div class="chips'+(isOpen?' open':'')+'"><div class="chips-inner">'+chips+'</div></div>'
+      + '</div>';
+  }).join('');
+}
+
+loadState();
+render();
+</script>
+
+</body>
+</html>
